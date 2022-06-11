@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import it.pgmArnaldo.esame.utility.FileUtility;
 import it.pgmArnaldo.esame.utility.InputDati;
 import it.pgmArnaldo.esame.utility.MyMenu;
+import it.pgmArnaldo.esame.utility.Utility;
 
 public class GestionePartita {
 
@@ -40,6 +41,7 @@ public class GestionePartita {
 		giocatore.setNome(nomeGiocatore);
 		MyMenu menuPrincipale = new MyMenu("Scegli un opzione", new String[]{"Apri inventario", "Visualizza le tue statistiche" }, "Esci dalla partita");
 		while (!evAttuale.getTipoEvento().equals(TipoEvento.VITTORIA) && !giocatore.isMorto() && !finito) {
+			System.out.println("\n\n\n");
 			System.out.println(piani.get(iPiano).getStatoPiano());
 			char comando = InputDati.leggiUpperChar("Inserisci un comando: ", "WASDEM");
 			if (comando == 'M') {
@@ -108,6 +110,7 @@ public class GestionePartita {
 		for (int i = 0; i < strumenti.length; i++) {
 			voci.add(strumenti[i].getNome());
 		}
+		if (voci.size() == 0) return null;
 		MyMenu menuInventario = new MyMenu("Scegli un oggetto", voci, "Torna alla partita");
 		int scelta = menuInventario.scegli();
 		return scelta == 0 ? null : strumenti[scelta-1];
@@ -115,6 +118,10 @@ public class GestionePartita {
 	
 	public static void azioneDaInventario(Giocatore g) {
 		Strumento attuale = scegliStrumentoDaInventario(g);
+		if (attuale == null) {
+			System.out.println("Non hai oggetti nell'inventario");
+			return;
+		}
 		MyMenu menuAzione = new MyMenu("Cosa vuoi fare", new String[]{"Vedi descrizione", "Utilizza/equipaggia" }, "Torna alla partita");
 		int scelta = menuAzione.scegli();
 		switch (scelta) {

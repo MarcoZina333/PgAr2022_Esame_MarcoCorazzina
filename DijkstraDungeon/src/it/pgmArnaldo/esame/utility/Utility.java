@@ -39,5 +39,12 @@ public class Utility {
 			return false;
 		}
 	}
+	/**Genera 70 spaziature sulla console
+	 */
+	public final static void clearConsole(){
+	    for (int i = 0; i<70; i++){
+	        System.out.println();
+	     }
+	}	
 	
 }

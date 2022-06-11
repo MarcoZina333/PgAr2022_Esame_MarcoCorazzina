@@ -162,7 +162,7 @@ public class Piano {
 				return getEventoAttuale();
 			case MOV_DX:
 				if ( !(posizAttuale.j + 1 == eventi[0].length || eventi[posizAttuale.i][posizAttuale.j+1].getTipoEvento().equals(TipoEvento.MURO)) )
-					posizAttuale.j--;
+					posizAttuale.j++;
 				return getEventoAttuale();
 			case MOV_SX:
 				if ( !(posizAttuale.j - 1 < 0 || eventi[posizAttuale.i][posizAttuale.j-1].getTipoEvento().equals(TipoEvento.MURO)) )
