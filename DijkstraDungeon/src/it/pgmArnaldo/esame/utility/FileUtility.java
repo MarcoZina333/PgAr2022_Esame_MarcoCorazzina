@@ -3,31 +3,17 @@ package it.pgmArnaldo.esame.utility;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map.Entry;
 
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 import it.pgmArnaldo.esame.dungeon.Piano;
-import it.unibs.progettoArnaldo.codFiscali.CodiceFiscale;
-import it.unibs.progettoArnaldo.codFiscali.Data;
-import it.unibs.progettoArnaldo.codFiscali.Persona;
-import it.unibs.progettoArnaldo.rovine.Citta;
-import it.unibs.progettoArnaldo.rovine.MappaCitta;
-import it.unibs.progettoArnaldo.rovine.PercorsoCitta;
-import it.unibs.progettoArnaldo.rovine.Posizione;
 
 
 public class FileUtility {
 
-	private static final String ERRORE_LETTURA = "Errore di lettura";
 	private static final String TAG_MAPPA = "mappa";
 	private static final String TAG_ALTEZZA = "height";
 	private static final String TAG_LARGHEZZA = "width";
@@ -44,11 +30,12 @@ public class FileUtility {
 	 * @param nomeFile : String contenente la directory del file da leggere
 	 * @return MappaCitta contenente tutte le citta presenti nel file e relativi collegamenti
 	 */
-	public static Piano leggiXMLCitta(String nomeFile) {
-		String[][] mappa;
-		String attuale = null;
-		int altezza;
-		int larghezza;
+	public static Piano leggiLivelloXML(String nomeFile) {
+		String[][] mappa = null;
+		int altezza = 0;
+		int larghezza = 0;
+		int riga = 0;
+		int colonna = 0;
 		//stringa utile a discriminare il tag in cui si è all'interno
 		String tagAttuale = "";
 
@@ -63,76 +50,70 @@ public class FileUtility {
 					case XMLStreamConstants.START_DOCUMENT: 
 						System.out.println("Lettura file "+ nomeFile +" ...");
 						break;
-					case XMLStreamConstants.START_ELEMENT: 
-						if (xmlr.getLocalName().equalsIgnoreCase(TAG_CODICE)) {
-							System.out.println("Attenzione file "+ nomeFile +" non valido per la lettura delle persone");
-							return persone;
-						}							
+					case XMLStreamConstants.START_ELEMENT: 						
 						switch (xmlr.getLocalName()) {
-							case TAG_PERSONE:
-								tagAttuale = "";
+							case TAG_MAPPA:
+								tagAttuale = TAG_MAPPA;
+								 for (int i = 0; i < xmlr.getAttributeCount(); i++) {
+									 switch (xmlr.getAttributeLocalName(i).trim()) {
+										 case TAG_LARGHEZZA:
+											 if (Utility.isNumeric(xmlr.getAttributeValue(i)))
+												 larghezza = Integer.parseInt(xmlr.getAttributeValue(i));
+											 break;
+										 case TAG_ALTEZZA:
+											 if (Utility.isNumeric(xmlr.getAttributeValue(i)))
+												 altezza = Integer.parseInt(xmlr.getAttributeValue(i));
+											 break;
+									 }
+								 }
+								 if (altezza > 0 && larghezza > 0) {
+									 mappa = new String[altezza][larghezza];
+								 }
+								 else return null;
 								break;
-							case TAG_PERSONA:
-								tagAttuale = TAG_PERSONA; 
+							case TAG_CELL:
+								tagAttuale = TAG_CELL; 
 								break;
-							case TAG_NOME:
-								tagAttuale = TAG_NOME;
-								break;
-							case TAG_COGNOME:
-								tagAttuale = TAG_COGNOME; 
-								break;
-							case TAG_COMUNE_NASCITA:
-								tagAttuale = TAG_COMUNE_NASCITA; 
-								break;
-							case TAG_DATA_NASCITA:
-								tagAttuale = TAG_DATA_NASCITA; 
-								break;
-							case TAG_SESSO:
-								tagAttuale = TAG_SESSO;
+							case TAG_ROW:
+								tagAttuale = TAG_ROW;
 								break;
 						}						
 						break;
 					case XMLStreamConstants.END_ELEMENT: 
 						tagAttuale = "";
-						if (xmlr.getLocalName().equals(TAG_PERSONA)) {
-							Persona nuovaPersona = new Persona(nome, cognome, sesso, dataNascita, comuneNascita);
-							CodiceFiscale.generaCodiceFiscale(cognome, nome , dataNascita, sesso , comuneNascita);
-							persone.add(nuovaPersona);
+						if (xmlr.getLocalName().equals(TAG_ROW)) {
+							riga++;
+						}
+						else if (xmlr.getLocalName().equals(TAG_CELL)) {
+							colonna = (colonna+1)%larghezza;
 						}
 						break;														
-					case XMLStreamConstants.CHARACTERS: 								
-						if (xmlr.getText().trim().length() > 0) {
-							switch (tagAttuale) {
-								case TAG_NOME:
-									nome = xmlr.getText().trim();
-									break;
-								case TAG_COGNOME:
-									cognome = xmlr.getText().trim();
-									break;
-								case TAG_COMUNE_NASCITA:
-									comuneNascita = xmlr.getText().trim();
-									break;
-								case TAG_DATA_NASCITA:
-									dataNascita = new Data(xmlr.getText().trim());
-									break;
-								case TAG_SESSO:
-									sesso = xmlr.getText().trim().charAt(0);
-									break;
+					case XMLStreamConstants.CHARACTERS:
+						if (tagAttuale.equals(TAG_CELL)) {
+							if (xmlr.getText().trim().length() == 1) {
+								mappa[riga][colonna] = xmlr.getText();
+							}
+							else {
+								mappa[riga][colonna] = "."; //se non e un carattere valido lo considero vuoto
 							}
 						}
 						break;
-				}
+					}
 				xmlr.next();
 			}
+			
 		} catch (FileNotFoundException e) {
 			System.out.println("File " + nomeFile + "non trovato");
-			System.out.println(MSG_FILE_NOT_FOUND+ nomeFile );
 			System.out.println(e.getMessage());
 		} catch (Exception e) {
-			System.out.println(MSG_ERRORE_READER_XML);
+			System.out.println(ERRORE_READER);
 			System.out.println(e.getMessage());
 		}
-		return persone;
+		if (mappa != null && altezza > 0 && larghezza > 0) {
+			System.out.println("ok");
+			return new Piano(mappa, larghezza, altezza);
+		}
+		return null;
 	}
 	
 	

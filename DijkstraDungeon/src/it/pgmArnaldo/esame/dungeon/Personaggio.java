@@ -55,5 +55,13 @@ public abstract class Personaggio implements Evento {
 	public boolean isMorto() {
 		return vitaAttuale <= 0;
 	}
+
+	@Override
+	public String toString() {
+		return "Personaggio [nome=" + nome + ", vitaAttuale=" + vitaAttuale + ", attaccoAttuale=" + attaccoAttuale
+				+ ", difesaAttuale=" + difesaAttuale + "]";
+	}
+	
+	
 	
 }

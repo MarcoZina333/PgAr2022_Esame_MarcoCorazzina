@@ -1,5 +1,7 @@
 package it.pgmArnaldo.esame.dungeon;
 
+import java.util.Arrays;
+
 public class Giocatore extends Personaggio {
 	
 	
@@ -68,8 +70,49 @@ public class Giocatore extends Personaggio {
 		return impugnato;
 	}
 
+	
+	public void rimuoviOggettoDaInventario(String nome) {
+		for (int i = 0; i < qtyOggetti; i++) {
+			if (inventario[i].getNome().equals(nome)) {
+				for (int j = i; j < qtyOggetti-1; j--) {
+					inventario[j] = inventario[j+1];
+				}
+				qtyOggetti--;
+			}
+		}
+		
+	}
+	
+	public void usaOggettoInventario(String nome) {
+		for (int i = 0; i < qtyOggetti; i++) {
+			if (inventario[i].getNome().equals(nome)) {
+				switch (inventario[i].getTipo()) {
+				case ARMA:
+					Strumento scambio = inventario[i];
+					inventario[i] = impugnato;
+					impugnato = scambio;
+					break;
+				case SCUDO:
+					rimuoviOggettoDaInventario(nome);
+					setVitaAttuale(getVitaAttuale() + ((Scudo) inventario[i]).getValoreScudo() );
+					break;
+				case POZIONE:
+					setVitaAttuale((int) (getVitaAttuale() + (double)getVitaAttuale()/((Pozione) inventario[i]).getValore()));
+					rimuoviOggettoDaInventario(nome);
+					
+					break;
 
-
+				default:
+					break;
+				}
+			}
+			
+		}
+	}
+	
+	public Strumento[] getInventario() {
+		return Arrays.copyOf(inventario, qtyOggetti);
+	}
 
 	public void setImpugnato(Strumento impugnato) {
 		this.impugnato = impugnato;
@@ -89,6 +132,7 @@ public class Giocatore extends Personaggio {
 	public int getFattoreSpostamento() {
 		return fattoreSpostamento;
 	}
+	
 	
 	
 }
